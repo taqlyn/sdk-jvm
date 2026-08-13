@@ -12,7 +12,7 @@ Configure the API origin, credential client ID, and the PKCS#8 Ed25519 private
 key returned when the credential was issued:
 
 ```bash
-export TAQLYN_BASE_URL=http://localhost:8080
+export TAQLYN_BASE_URL=https://api.rutvik.qzz.io
 export TAQLYN_CLIENT_ID=app_test_abc
 export TAQLYN_PRIVATE_KEY='-----BEGIN PRIVATE KEY-----
 ...
@@ -22,6 +22,9 @@ export TAQLYN_PRIVATE_KEY='-----BEGIN PRIVATE KEY-----
 Do not use an `sk_test_*` or `sk_live_*` value as the private key. Those values
 are credential handles and cannot sign requests. Literal `\n` sequences in the
 PEM environment variable are accepted.
+
+Public tunnel demo: [`examples/server/jvm`](../../examples/server/jvm),
+[`docs/guides/public-demo.md`](../../docs/guides/public-demo.md).
 
 ```java
 import com.taqlyn.sdk.Client;
