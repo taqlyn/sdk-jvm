@@ -1,5 +1,7 @@
 # Taqlyn JVM SDK
 
+**Full guide:** [Java](../../apps/docs/content/server/java.md) on the docs site (not the Android cookbook).
+
 Minimal Java 17+ **server** SDK for creating Taqlyn short links with Ed25519
 request signing. Maven coordinates: `com.taqlyn:sdk`.
 
