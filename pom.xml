@@ -6,7 +6,7 @@
 
   <groupId>com.taqlyn</groupId>
   <artifactId>sdk</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
   <name>Taqlyn JVM Server SDK</name>
   <description>Kotlin and Java server SDK for Taqlyn short links</description>
   <url>https://github.com/taqlyn/sdk-jvm</url>

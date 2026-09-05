@@ -1,0 +1,55 @@
+name: Publish JVM SDK (Maven Central)
+
+# Deploys signed JARs to Maven Central via Sonatype Central Portal API.
+# Cryptographically signed with GPG key pair.
+
+on:
+  release:
+    types: [published]
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+concurrency:
+  group: publish-jvm-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Build & Deploy to Maven Central
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: maven
+
+      - name: Run tests
+        run: mvn --batch-mode test
+
+      - name: Import GPG Key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          if [ -n "$GPG_PRIVATE_KEY" ]; then
+            echo "$GPG_PRIVATE_KEY" | base64 -d | gpg --batch --import --no-tty --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" || true
+          fi
+
+      - name: Deploy to Maven Central
+        run: |
+          mvn --batch-mode clean deploy -DskipTests -P release \
+            -Dgpg.keyname="${{ secrets.GPG_KEY_ID }}" \
+            -Dgpg.passphrase="${{ secrets.GPG_PASSPHRASE }}"
+        env:
+          MAVEN_USERNAME: ${{ secrets.SONATYPE_TOKEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.SONATYPE_TOKEN_PASSWORD }}
