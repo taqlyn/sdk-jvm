@@ -52,6 +52,7 @@ jobs:
             echo "::error::GPG_PRIVATE_KEY is required for Maven Central."
             exit 1
           fi
+          GPG_PASSPHRASE="$(printf '%s' "$GPG_PASSPHRASE" | tr -d '\r')"
           key_file="${RUNNER_TEMP}/signing-key.asc"
           if printf '%s' "$GPG_PRIVATE_KEY" | grep -q "BEGIN PGP"; then
             printf '%s\n' "$GPG_PRIVATE_KEY" > "$key_file"
@@ -62,6 +63,12 @@ jobs:
             echo "::error::Failed to decode GPG_PRIVATE_KEY into an ASCII-armored PGP key."
             exit 1
           fi
+          export GNUPGHOME="${RUNNER_TEMP}/gnupg"
+          mkdir -p "$GNUPGHOME"
+          chmod 700 "$GNUPGHOME"
+          printf 'pinentry-mode loopback\n' > "$GNUPGHOME/gpg.conf"
+          printf 'allow-loopback-pinentry\n' > "$GNUPGHOME/gpg-agent.conf"
+          echo "GNUPGHOME=$GNUPGHOME" >> "$GITHUB_ENV"
           gpg --batch --import --no-tty --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" "$key_file"
 
       - name: Deploy to Maven Central
