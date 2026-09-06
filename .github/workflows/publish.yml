@@ -52,13 +52,27 @@ jobs:
             echo "::error::GPG_PRIVATE_KEY is required for Maven Central."
             exit 1
           fi
-          echo "$GPG_PRIVATE_KEY" | base64 -d | gpg --batch --import --no-tty --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE"
+          key_file="${RUNNER_TEMP}/signing-key.asc"
+          if printf '%s' "$GPG_PRIVATE_KEY" | grep -q "BEGIN PGP"; then
+            printf '%s\n' "$GPG_PRIVATE_KEY" > "$key_file"
+          else
+            printf '%s' "$GPG_PRIVATE_KEY" | base64 -d > "$key_file"
+          fi
+          if [ ! -s "$key_file" ]; then
+            echo "::error::Failed to decode GPG_PRIVATE_KEY into an ASCII-armored PGP key."
+            exit 1
+          fi
+          gpg --batch --import --no-tty --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" "$key_file"
 
       - name: Deploy to Maven Central
-        run: |
-          mvn --batch-mode clean deploy -DskipTests -P release \
-            -Dgpg.keyname="${{ secrets.GPG_KEY_ID }}" \
-            -Dgpg.passphrase="${{ secrets.GPG_PASSPHRASE }}"
         env:
           MAVEN_USERNAME: ${{ secrets.SONATYPE_TOKEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.SONATYPE_TOKEN_PASSWORD }}
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          key_id="${GPG_KEY_ID#0x}"
+          key_id="${key_id#0X}"
+          mvn --batch-mode clean deploy -DskipTests -P release \
+            -Dgpg.keyname="$key_id" \
+            -Dgpg.passphrase="$GPG_PASSPHRASE"
