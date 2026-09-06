@@ -22,6 +22,7 @@ jobs:
   publish:
     name: Build & Deploy to Maven Central
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
