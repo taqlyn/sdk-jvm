@@ -41,9 +41,11 @@ jobs:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
-          if [ -n "$GPG_PRIVATE_KEY" ]; then
-            echo "$GPG_PRIVATE_KEY" | base64 -d | gpg --batch --import --no-tty --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" || true
+          if [ -z "$GPG_PRIVATE_KEY" ]; then
+            echo "::error::GPG_PRIVATE_KEY is required for Maven Central."
+            exit 1
           fi
+          echo "$GPG_PRIVATE_KEY" | base64 -d | gpg --batch --import --no-tty --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE"
 
       - name: Deploy to Maven Central
         run: |
